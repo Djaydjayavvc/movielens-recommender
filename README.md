@@ -72,9 +72,3 @@ Python, Pandas, NumPy, Scikit-learn, Keras, Scikit-surprise, Jupyter
 - Precision@K and Recall@K metrics for recommendation quality
 - Flask web interface for live demo
 ```
-
-Then save and push:
-```
-git add README.md
-git commit -m "Update README with Day 3 results"
-git push
