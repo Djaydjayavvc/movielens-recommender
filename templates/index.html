@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieLens Recommender</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            color: #e50914;
+        }
+
+        p.subtitle {
+            color: #aaa;
+            margin-bottom: 40px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 14px 18px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 14px 28px;
+            background: #e50914;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        button:hover { background: #c40812; }
+
+        .error {
+            color: #e50914;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .results-header {
+            font-size: 1.1rem;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .movie-card {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #2a2a2a;
+            transition: border-color 0.2s;
+        }
+
+        .movie-card:hover { border-color: #e50914; }
+
+        .movie-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .movie-genres {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .movie-score {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #e50914;
+        }
+
+        .rank {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #333;
+            margin-right: 20px;
+            min-width: 32px;
+        }
+
+        .movie-left {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 MovieLens Recommender</h1>
+        <p class="subtitle">Hybrid content-based + collaborative filtering · Enter a user ID (1–610)</p>
+
+        <form method="POST" class="search-box">
+            <input type="number" name="user_id" placeholder="Enter user ID (e.g. 1)"
+                   value="{{ user_id or '' }}" min="1" max="610" required>
+            <button type="submit">Get Recommendations</button>
+        </form>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        {% if recommendations %}
+            <p class="results-header">Top 10 recommendations for User {{ user_id }}</p>
+            {% for movie in recommendations %}
+            <div class="movie-card">
+                <div class="movie-left">
+                    <span class="rank">#{{ loop.index }}</span>
+                    <div>
+                        <div class="movie-title">{{ movie.title }}</div>
+                        <div class="movie-genres">{{ movie.genres.replace('|', ' · ') }}</div>
+                    </div>
+                </div>
+                <div class="movie-score">{{ "%.3f"|format(movie.score) }}</div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</body>
+</html>
+```
