@@ -4,6 +4,13 @@ A movie recommendation system built on the MovieLens 100K dataset,
 implementing and comparing multiple approaches from collaborative 
 filtering to content-based filtering and a hybrid model.
 
+## Live Demo
+
+![App Screenshot](screenshots/app.png)
+
+Pick 3 movies you love → get 9 similar recommendations + a serendipity 
+**Wild Card** pick from a real user with identical taste.
+
 ## Models & Results
 
 | Model | MAE | Notes |
@@ -21,8 +28,22 @@ movielens-recommender/
 │   ├── 01_data_exploration.ipynb
 │   ├── 02_collaborative_filtering.ipynb
 │   └── 03_content_based_filtering.ipynb
-├── src/                # (future) reusable modules
+├── templates/          # Flask HTML templates
+├── app.py              # Flask web application
 └── README.md
+```
+
+## Web App
+
+Built with Flask. Features:
+- Autocomplete movie search across 9742 movies
+- 9 content-based recommendations from 3 movie inputs
+- Wild Card serendipity pick — finds the most similar real user and surfaces their most unexpected highly-rated movie
+
+To run locally:
+```
+pip install -r requirements.txt
+python app.py
 ```
 
 ## Notebooks
@@ -54,20 +75,17 @@ movielens-recommender/
 
 ## Key Insights
 
-- SVD outperforms Neural CF on this dataset size — simpler models 
-  win when data is limited
-- Content-based has higher MAE but handles cold-start (new movies 
-  with no ratings) which CF cannot
-- Recency decay improves CB performance — recent ratings are more 
-  representative of current taste
-- Hybrid trades accuracy for coverage — useful in production where 
-  cold-start is a real problem
+- SVD outperforms Neural CF on this dataset size — simpler models win when data is limited
+- Content-based has higher MAE but handles cold-start (new movies with no ratings) which CF cannot
+- Recency decay improves CB performance — recent ratings are more representative of current taste
+- Hybrid trades accuracy for coverage — useful in production where cold-start is a real problem
 
 ## Stack
-Python, Pandas, NumPy, Scikit-learn, Keras, Scikit-surprise, Jupyter
+Python, Flask, Pandas, NumPy, Scikit-learn, Keras, Scikit-surprise, Jupyter
 
 ## Future Improvements
 - Add TMDB metadata (director, cast) as content features
 - Time-based train/test split for more realistic evaluation
 - Precision@K and Recall@K metrics for recommendation quality
-- Flask web interface for live demo
+- Deploy to cloud (Heroku/Render) for public access
+```
