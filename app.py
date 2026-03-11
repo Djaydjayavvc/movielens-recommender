@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -6,6 +6,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics.pairwise import cosine_similarity
 from surprise import SVD, Dataset, Reader
 from surprise.model_selection import train_test_split as surprise_split
+import json
 
 app = Flask(__name__)
 
@@ -48,63 +49,101 @@ trainset, _ = surprise_split(data, test_size=0.2, random_state=42)
 svd_model = SVD(n_factors=10, random_state=42)
 svd_model.fit(trainset)
 
-# --- User profile function ---
-def build_user_profile(user_id, ratings_df, item_features_df, decay=0.5):
-    user_ratings = ratings_df[ratings_df['userId'] == user_id].copy()
-    user_ratings['rating_centered'] = user_ratings['rating'] - user_ratings['rating'].mean()
-    max_timestamp = ratings_df['timestamp'].max()
-    seconds_per_year = 365.25 * 24 * 60 * 60
-    user_ratings['years_ago'] = (max_timestamp - user_ratings['timestamp']) / seconds_per_year
-    user_ratings['recency_weight'] = np.exp(-decay * user_ratings['years_ago'])
-    user_ratings['final_weight'] = user_ratings['rating_centered'] * user_ratings['recency_weight']
-    user_ratings = user_ratings[user_ratings['movieId'].isin(item_features_df.index)]
-    if user_ratings.empty:
-        return None
-    rated_features = item_features_df.loc[user_ratings['movieId']]
-    weights = user_ratings['final_weight'].values
-    return np.dot(weights, rated_features.values)
+# --- Movies JSON for autocomplete ---
+movies_json = movies[['movieId', 'title']].to_dict(orient='records')
 
-# --- Hybrid recommend function ---
-def hybrid_recommend(user_id, n=10, alpha=0.2):
-    profile = build_user_profile(user_id, ratings, item_features)
-    if profile is None:
-        return []
+# --- Recommend from movie IDs ---
+def recommend_from_movies(movie_ids, n=9):
+    # Build profile from chosen movies
+    valid_ids = [mid for mid in movie_ids if mid in item_features.index]
+    if not valid_ids:
+        return [], None
+
+    profile = item_features.loc[valid_ids].mean(axis=0).values
+
+    # Cosine similarity
     sims = cosine_similarity([profile], item_features.values)[0]
-    cb_scores = pd.Series(sims, index=item_features.index)
-    all_movies = item_features.index.tolist()
-    cf_scores = pd.Series(
-        [svd_model.predict(user_id, mid).est for mid in all_movies],
-        index=all_movies
-    )
-    cb_norm = (cb_scores - cb_scores.min()) / (cb_scores.max() - cb_scores.min())
-    cf_norm = (cf_scores - cf_scores.min()) / (cf_scores.max() - cf_scores.min())
-    hybrid_scores = alpha * cb_norm + (1 - alpha) * cf_norm
-    already_rated = ratings[ratings['userId'] == user_id]['movieId'].values
-    hybrid_scores = hybrid_scores.drop(index=already_rated, errors='ignore')
-    top_n = hybrid_scores.nlargest(n).reset_index()
+    sim_series = pd.Series(sims, index=item_features.index)
+
+    # Remove chosen movies
+    sim_series = sim_series.drop(index=valid_ids, errors='ignore')
+
+    top_n = sim_series.nlargest(n).reset_index()
     top_n.columns = ['movieId', 'score']
     result = top_n.merge(movies[['movieId', 'title', 'genres']], on='movieId')
-    return result.to_dict(orient='records')
+
+    return result.to_dict(orient='records'), profile
+
+def get_wildcard(profile, chosen_ids, n_similar_users=5):
+    # Find most similar user to profile
+    user_profiles = {}
+    for uid in ratings['userId'].unique():
+        user_ratings = ratings[ratings['userId'] == uid]
+        user_movies = user_ratings['movieId'][user_ratings['movieId'].isin(item_features.index)]
+        if len(user_movies) < 5:
+            continue
+        user_vec = item_features.loc[user_movies].mean(axis=0).values
+        user_profiles[uid] = user_vec
+
+    if not user_profiles:
+        return None
+
+    user_ids = list(user_profiles.keys())
+    user_vecs = np.array(list(user_profiles.values()))
+    sims = cosine_similarity([profile], user_vecs)[0]
+    most_similar_user = user_ids[np.argmax(sims)]
+
+    # Get their highly rated movies
+    user_highly_rated = ratings[
+        (ratings['userId'] == most_similar_user) &
+        (ratings['rating'] >= 4.0)
+    ]['movieId'].values
+
+    # Remove already chosen + already recommended
+    candidates = [mid for mid in user_highly_rated
+                  if mid not in chosen_ids
+                  and mid in item_features.index]
+
+    if not candidates:
+        return None
+
+    # Pick the one LEAST similar to the profile (the surprise)
+    candidate_features = item_features.loc[candidates]
+    sims = cosine_similarity([profile], candidate_features.values)[0]
+    least_similar_idx = np.argmin(sims)
+    wildcard_id = candidates[least_similar_idx]
+
+    wildcard_movie = movies[movies['movieId'] == wildcard_id].iloc[0]
+    return {
+        'title': wildcard_movie['title'],
+        'genres': wildcard_movie['genres'],
+        'similar_user': int(most_similar_user)
+    }
 
 # --- Routes ---
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
-    recommendations = []
-    user_id = None
-    error = None
-    if request.method == 'POST':
-        try:
-            user_id = int(request.form['user_id'])
-            if user_id not in ratings['userId'].values:
-                error = f"User {user_id} not found. Try a number between 1 and 610."
-            else:
-                recommendations = hybrid_recommend(user_id)
-        except ValueError:
-            error = "Please enter a valid number."
-    return render_template('index.html',
-                         recommendations=recommendations,
-                         user_id=user_id,
-                         error=error)
+    return render_template('index.html', movies_json=json.dumps(movies_json))
+
+@app.route('/recommend', methods=['POST'])
+def recommend():
+    data = request.get_json()
+    movie_ids = data.get('movie_ids', [])
+
+    if len(movie_ids) != 3:
+        return jsonify({'error': 'Please select exactly 3 movies.'})
+
+    recommendations, profile = recommend_from_movies(movie_ids, n=9)
+
+    if not recommendations:
+        return jsonify({'error': 'Could not find those movies in the dataset.'})
+
+    wildcard = get_wildcard(profile, movie_ids)
+
+    return jsonify({
+        'recommendations': recommendations,
+        'wildcard': wildcard
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)

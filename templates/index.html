@@ -15,30 +15,26 @@
             padding: 40px 20px;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+        .container { max-width: 860px; margin: 0 auto; }
 
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 8px;
-            color: #e50914;
-        }
+        h1 { font-size: 2.5rem; color: #e50914; margin-bottom: 8px; }
+        .subtitle { color: #aaa; margin-bottom: 40px; }
 
-        p.subtitle {
+        .section-title {
+            font-size: 1rem;
             color: #aaa;
-            margin-bottom: 40px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .search-box {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 40px;
-        }
+        /* --- Movie inputs --- */
+        .inputs { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
 
-        input[type="number"] {
-            flex: 1;
+        .autocomplete-wrapper { position: relative; }
+
+        .autocomplete-wrapper input {
+            width: 100%;
             padding: 14px 18px;
             border-radius: 8px;
             border: 1px solid #333;
@@ -47,29 +43,48 @@
             font-size: 1rem;
         }
 
-        button {
-            padding: 14px 28px;
+        .autocomplete-wrapper input:focus {
+            outline: none;
+            border-color: #e50914;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0; right: 0;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .dropdown-item {
+            padding: 12px 18px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .dropdown-item:hover { background: #2a2a2a; color: #e50914; }
+
+        button.submit-btn {
+            width: 100%;
+            padding: 16px;
             background: #e50914;
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-
-        button:hover { background: #c40812; }
-
-        .error {
-            color: #e50914;
-            margin-bottom: 20px;
-            font-size: 0.95rem;
-        }
-
-        .results-header {
             font-size: 1.1rem;
-            color: #aaa;
-            margin-bottom: 20px;
+            cursor: pointer;
+            margin-bottom: 40px;
         }
+
+        button.submit-btn:hover { background: #c40812; }
+
+        /* --- Movie cards --- */
+        .results-header { font-size: 1.1rem; color: #aaa; margin-bottom: 20px; }
 
         .movie-card {
             background: #1a1a1a;
@@ -85,22 +100,7 @@
 
         .movie-card:hover { border-color: #e50914; }
 
-        .movie-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .movie-genres {
-            font-size: 0.85rem;
-            color: #888;
-        }
-
-        .movie-score {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #e50914;
-        }
+        .movie-left { display: flex; align-items: center; }
 
         .rank {
             font-size: 1.5rem;
@@ -110,43 +110,298 @@
             min-width: 32px;
         }
 
-        .movie-left {
+        .movie-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; }
+        .movie-genres { font-size: 0.85rem; color: #888; }
+        .movie-score { font-size: 1.2rem; font-weight: 700; color: #e50914; }
+
+        /* --- Wild card section --- */
+        .wildcard-section {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .wildcard-title {
+            font-size: 1rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        /* --- Slot machine --- */
+        .slot-machine {
+            background: #1a1a1a;
+            border: 2px solid #e50914;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .slot-window {
+            background: #0f0f0f;
+            border-radius: 8px;
+            height: 80px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .slot-reel {
+            position: absolute;
+            width: 100%;
+            transition: transform 0.1s;
+        }
+
+        .slot-item {
+            height: 80px;
             display: flex;
             align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 0 20px;
         }
+
+        .spin-btn {
+            padding: 12px 32px;
+            background: #e50914;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .spin-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .wildcard-reveal {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .wildcard-card {
+            background: #0f0f0f;
+            border: 2px solid #e50914;
+            border-radius: 10px;
+            padding: 24px;
+            text-align: left;
+        }
+
+        .wildcard-label {
+            font-size: 0.85rem;
+            color: #e50914;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .wildcard-framing {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        .wildcard-movie-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .wildcard-genres { font-size: 0.9rem; color: #888; }
+
+        .error { color: #e50914; margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎬 MovieLens Recommender</h1>
-        <p class="subtitle">Hybrid content-based + collaborative filtering · Enter a user ID (1–610)</p>
+<div class="container">
+    <h1>🎬 MovieLens Recommender</h1>
+    <p class="subtitle">Pick 3 movies you love — we'll find what to watch next</p>
 
-        <form method="POST" class="search-box">
-            <input type="number" name="user_id" placeholder="Enter user ID (e.g. 1)"
-                   value="{{ user_id or '' }}" min="1" max="610" required>
-            <button type="submit">Get Recommendations</button>
-        </form>
+    <p class="section-title">Choose 3 movies</p>
+    <div class="inputs">
+        <div class="autocomplete-wrapper">
+            <input type="text" class="movie-input" placeholder="Movie 1 — start typing..." autocomplete="off">
+            <div class="dropdown"></div>
+            <input type="hidden" class="movie-id-input">
+        </div>
+        <div class="autocomplete-wrapper">
+            <input type="text" class="movie-input" placeholder="Movie 2 — start typing..." autocomplete="off">
+            <div class="dropdown"></div>
+            <input type="hidden" class="movie-id-input">
+        </div>
+        <div class="autocomplete-wrapper">
+            <input type="text" class="movie-input" placeholder="Movie 3 — start typing..." autocomplete="off">
+            <div class="dropdown"></div>
+            <input type="hidden" class="movie-id-input">
+        </div>
+    </div>
 
-        {% if error %}
-            <p class="error">{{ error }}</p>
-        {% endif %}
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
 
-        {% if recommendations %}
-            <p class="results-header">Top 10 recommendations for User {{ user_id }}</p>
-            {% for movie in recommendations %}
-            <div class="movie-card">
-                <div class="movie-left">
-                    <span class="rank">#{{ loop.index }}</span>
-                    <div>
-                        <div class="movie-title">{{ movie.title }}</div>
-                        <div class="movie-genres">{{ movie.genres.replace('|', ' · ') }}</div>
+    <button class="submit-btn" onclick="getRecommendations()">Get Recommendations</button>
+
+    <div id="results-section" style="display:none">
+        <p class="results-header" id="results-header"></p>
+
+        <div id="movie-cards"></div>
+
+        <!-- Wild card -->
+        <div class="wildcard-section" id="wildcard-section">
+            <p class="wildcard-title">🎲 Wild Card</p>
+            <div class="slot-machine">
+                <div class="slot-window">
+                    <div class="slot-reel" id="slot-reel">
+                        <div class="slot-item">???</div>
                     </div>
                 </div>
-                <div class="movie-score">{{ "%.3f"|format(movie.score) }}</div>
+                <button class="spin-btn" id="spin-btn" onclick="spinWheel()">🎰 Spin to reveal</button>
+                <div class="wildcard-reveal" id="wildcard-reveal"></div>
             </div>
-            {% endfor %}
-        {% endif %}
+        </div>
     </div>
+</div>
+
+<script>
+    const allMovies = {{ movies_json | safe }};
+    let wildcardData = null;
+
+    // --- Autocomplete ---
+    document.querySelectorAll('.autocomplete-wrapper').forEach(wrapper => {
+        const input = wrapper.querySelector('.movie-input');
+        const dropdown = wrapper.querySelector('.dropdown');
+        const hiddenInput = wrapper.querySelector('.movie-id-input');
+
+        input.addEventListener('input', () => {
+            const query = input.value.toLowerCase();
+            dropdown.innerHTML = '';
+            if (query.length < 2) { dropdown.style.display = 'none'; return; }
+
+            const matches = allMovies
+                .filter(m => m.title.toLowerCase().includes(query))
+                .slice(0, 8);
+
+            if (matches.length === 0) { dropdown.style.display = 'none'; return; }
+
+            matches.forEach(m => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                item.textContent = m.title;
+                item.addEventListener('click', () => {
+                    input.value = m.title;
+                    hiddenInput.value = m.movieId;
+                    dropdown.style.display = 'none';
+                });
+                dropdown.appendChild(item);
+            });
+            dropdown.style.display = 'block';
+        });
+
+        document.addEventListener('click', e => {
+            if (!wrapper.contains(e.target)) dropdown.style.display = 'none';
+        });
+    });
+
+    // --- Get recommendations ---
+    async function getRecommendations() {
+        const ids = [...document.querySelectorAll('.movie-id-input')]
+            .map(i => i.value).filter(Boolean);
+
+        if (ids.length < 3) {
+            alert('Please select all 3 movies from the dropdown.');
+            return;
+        }
+
+        const resp = await fetch('/recommend', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({movie_ids: ids.map(Number)})
+        });
+
+        const data = await resp.json();
+        if (data.error) { alert(data.error); return; }
+
+        // Show results
+        document.getElementById('results-section').style.display = 'block';
+        document.getElementById('results-header').textContent =
+            `Top ${data.recommendations.length} movies based on your picks`;
+
+        const cardsDiv = document.getElementById('movie-cards');
+        cardsDiv.innerHTML = '';
+        data.recommendations.forEach((m, i) => {
+            cardsDiv.innerHTML += `
+                <div class="movie-card">
+                    <div class="movie-left">
+                        <span class="rank">#${i+1}</span>
+                        <div>
+                            <div class="movie-title">${m.title}</div>
+                            <div class="movie-genres">${m.genres.replace(/\|/g, ' · ')}</div>
+                        </div>
+                    </div>
+                    <div class="movie-score">${m.score.toFixed(3)}</div>
+                </div>`;
+        });
+
+        // Store wildcard
+        wildcardData = data.wildcard;
+        document.getElementById('wildcard-section').style.display = 'block';
+        document.getElementById('wildcard-reveal').style.display = 'none';
+        document.getElementById('spin-btn').disabled = false;
+
+        // Reset slot
+        const reel = document.getElementById('slot-reel');
+        reel.innerHTML = '<div class="slot-item">???</div>';
+    }
+
+    // --- Spin wheel ---
+    function spinWheel() {
+        const btn = document.getElementById('spin-btn');
+        btn.disabled = true;
+        const reel = document.getElementById('slot-reel');
+
+        const fakeMovies = allMovies.slice(0, 30).map(m => m.title);
+        let count = 0;
+        const totalSpins = 25;
+        let delay = 60;
+
+        function spin() {
+            const randomMovie = fakeMovies[Math.floor(Math.random() * fakeMovies.length)];
+            reel.innerHTML = `<div class="slot-item">${randomMovie}</div>`;
+            count++;
+            delay = 60 + (count / totalSpins) * 200;
+
+            if (count < totalSpins) {
+                setTimeout(spin, delay);
+            } else {
+                // Land on real wildcard
+                reel.innerHTML = `<div class="slot-item" style="color:#e50914">${wildcardData.title}</div>`;
+                revealWildcard();
+            }
+        }
+        spin();
+    }
+
+    function revealWildcard() {
+        const div = document.getElementById('wildcard-reveal');
+        div.style.display = 'block';
+        div.innerHTML = `
+            <div class="wildcard-card">
+                <div class="wildcard-label">🎲 Wild card</div>
+                <div class="wildcard-framing">
+                    User ${wildcardData.similar_user} has almost identical taste to yours —
+                    and their most unexpected highly-rated movie is:
+                </div>
+                <div class="wildcard-movie-title">${wildcardData.title}</div>
+                <div class="wildcard-genres">${wildcardData.genres.replace(/\|/g, ' · ')}</div>
+            </div>`;
+    }
+</script>
 </body>
 </html>
-```
