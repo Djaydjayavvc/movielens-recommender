@@ -6,7 +6,8 @@ filtering to content-based filtering and a hybrid model.
 
 ## Live Demo
 
-![App Screenshot](screenshots/app.png)
+![Recommendations](screenshots/app1.png)
+![Wild Card](screenshots/app2.png)
 
 Pick 3 movies you love → get 9 similar recommendations + a serendipity 
 **Wild Card** pick from a real user with identical taste.
